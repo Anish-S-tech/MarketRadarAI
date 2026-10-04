@@ -1,0 +1,30 @@
+Classify a change detected on a monitored competitor source.
+
+Competitor: {{ competitor }}
+Source: {{ source_name }} ({{ source_type }}) {{ url }}
+{% if item_title | default('') %}
+New item published: {{ item_title }}
+{{ item_summary | default('') | truncate(3000) }}
+{% endif %}
+{% if pricing_changes | default([]) %}
+Structured pricing changes (already verified by diffing the pricing table):
+{% for pc in pricing_changes %}- {{ pc.description }}
+{% endfor %}
+{% endif %}
+{% if added | default([]) %}
+ADDED text:
+{% for a in added[:40] %}+ {{ a | truncate(400) }}
+{% endfor %}
+{% endif %}
+{% if removed | default([]) %}
+REMOVED text:
+{% for r in removed[:40] %}- {{ r | truncate(400) }}
+{% endfor %}
+{% endif %}
+
+Rules:
+- is_meaningful=false for cosmetic edits, typo fixes, cookie banners, dates, counters, navigation or footer changes.
+- category: one of pricing, product, feature, positioning, partnership, strategy, leadership, financial, other.
+- significance: 0.0-1.0. Price changes, launches, acquisitions, major partnerships and strategy shifts are >= 0.6.
+  Small copy tweaks are < 0.3.
+- key_facts: concrete facts (plan names, old -> new prices, product names, partner names, dates).

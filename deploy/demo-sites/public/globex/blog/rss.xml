@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Globex Data Blog</title>
+<link>http://globex.localtest.me:8090/</link><description>News from Globex Data</description>
+<item><title>Globex partners with Snowflake to launch Globex Connect</title>
+<link>http://globex.localtest.me:8090/blog/post-d5afb8429d.html</link><guid>post-d5afb8429d</guid>
+<pubDate>Tue, 29 Sep 2026 18:44:43 +0000</pubDate><description>Globex Data announced a strategic partnership with Snowflake and launched Globex Connect, a native connector that brings Globex governance to Snowflake workloads.</description></item><item><title>Why data governance matters in 2026</title>
+<link>http://globex.localtest.me:8090/blog/post-6312954881.html</link><guid>post-6312954881</guid>
+<pubDate>Thu, 17 Sep 2026 18:43:43 +0000</pubDate><description>Governance is becoming a board-level topic. Here is how Globex helps.</description></item>
+</channel></rss>

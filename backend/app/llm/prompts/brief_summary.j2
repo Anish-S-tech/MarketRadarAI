@@ -1,0 +1,12 @@
+Write the daily competitive intelligence brief for {{ org_name }} for {{ date }}.
+
+Events from the last 24 hours (highest priority first):
+{% for e in events %}- [{{ e.priority | upper }}]{% if e.simulated | default(false) %} [SIMULATED SCENARIO]{% endif %} [{{ e.category }}] {{ e.competitor }}: {{ e.title }} (confidence: {{ e.confidence_level }})
+  {{ e.summary | truncate(300) }}
+{% endfor %}
+{% if not events %}(no new events){% endif %}
+
+Events marked SIMULATED SCENARIO are demo simulations, not real news: say so whenever you mention them.
+
+Return: a headline (under 15 words), a 3-5 sentence executive_summary focused on what matters and why,
+key_themes (short phrases) and a watch_list of things to monitor next.

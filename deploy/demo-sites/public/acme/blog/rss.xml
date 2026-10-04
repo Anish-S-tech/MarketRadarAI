@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Acme Insights Blog</title>
+<link>http://acme.localtest.me:8090/</link><description>News from Acme Insights</description>
+<item><title>New Growth plan pricing: more AI, now $99 per month</title>
+<link>http://acme.localtest.me:8090/blog/post-88ac292965.html</link><guid>post-88ac292965</guid>
+<pubDate>Tue, 29 Sep 2026 18:44:43 +0000</pubDate><description>Starting today the Acme Insights Growth plan costs $99 per month (previously $79), and every plan now includes AI-generated summaries.</description></item><item><title>How Acme customers cut reporting time in half</title>
+<link>http://acme.localtest.me:8090/blog/post-10e81587d3.html</link><guid>post-10e81587d3</guid>
+<pubDate>Wed, 09 Sep 2026 18:43:43 +0000</pubDate><description>Case study: three customers describe their analytics workflows with Acme Insights.</description></item><item><title>Acme Insights Q2 product recap</title>
+<link>http://acme.localtest.me:8090/blog/post-e0171d5368.html</link><guid>post-e0171d5368</guid>
+<pubDate>Sat, 15 Aug 2026 18:42:43 +0000</pubDate><description>Scheduled exports, new chart types and faster queries shipped this quarter.</description></item>
+</channel></rss>

@@ -1,0 +1,6 @@
+Extract the pricing table from this {{ competitor }} pricing page text.
+Return every plan with its numeric price (null for "Contact sales"/custom), currency code, billing period
+(month or year; if both are shown prefer the monthly price) and its listed features. Do not invent plans.
+
+PAGE TEXT:
+{{ text | truncate(9000) }}

@@ -1,0 +1,47 @@
+# {{ headline }}
+
+_{{ org_name }} · Daily competitive intelligence brief · {{ date }}{% if role != 'general' %} · {{ role | capitalize }} edition{% endif %}_
+
+{{ executive_summary }}
+
+{% if stats.total %}
+**Last 24h:** {{ stats.total }} event{{ "s" if stats.total != 1 }} — {% for p in ['critical', 'high', 'medium', 'low'] if stats.by_priority.get(p) %}{{ stats.by_priority[p] }} {{ p }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+
+{% if key_themes %}
+**Themes:** {{ key_themes | join(' · ') }}
+{% endif %}
+
+{% for group in groups %}
+## {{ group.label }}
+
+{% for e in group.events %}
+### [{{ e.priority | upper }}]{% if e.simulated %} [SIMULATED]{% endif %} {{ e.title }}
+{{ e.competitor }} · {{ e.category }} · confidence: {{ e.confidence_level or 'n/a' }}
+
+{{ e.summary }}
+{% if e.implication %}
+
+> **For {{ role_label }}:** {{ e.implication }}
+{% endif %}
+{% if e.actions %}
+
+{% for a in e.actions %}
+- {{ a.action }} _({{ a.owner_role }}, {{ a.urgency | replace('_', ' ') }})_
+{% endfor %}
+{% endif %}
+
+[Details]({{ e.link }})
+
+{% endfor %}
+{% endfor %}
+{% if not groups %}
+No significant competitor developments in the last 24 hours.
+{% endif %}
+{% if watch_list %}
+
+## Watch list
+{% for w in watch_list %}
+- {{ w }}
+{% endfor %}
+{% endif %}

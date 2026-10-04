@@ -1,0 +1,36 @@
+{% set company = company | default({}) %}
+Assess the business impact of a competitor move on OUR company.
+
+OUR COMPANY: {{ company.name | default('Our company') }}
+{{ company.description | default('') }}
+Positioning: {{ company.positioning | default('') }}
+Differentiators: {{ company.differentiators | default([]) | join(', ') }}
+Our products:
+{% for p in own_products | default([]) %}- {{ p.name }} ({{ p.category }}): {{ p.description | truncate(200) }}
+{% endfor %}
+Our pricing:
+{% for pp in own_prices | default([]) %}- {{ pp.plan }}: {{ pp.price if pp.price is not none else 'custom' }} {{ pp.currency }}/{{ pp.period }}
+{% endfor %}
+Customer segments:
+{% for s in segments | default([]) %}- {{ s.name }} ({{ (s.revenue_share * 100) | round | int }}% of revenue): {{ s.description | truncate(150) }}
+{% endfor %}
+
+COMPETITOR: {{ competitor }} (threat tier {{ threat_tier }}/5)
+Profile: {{ competitor_profile | default('') | truncate(1200) }}
+Recent history:
+{% for h in recent_history | default([]) %}- {{ h }}
+{% endfor %}
+
+EVENT ({{ category }}, verification: {{ confidence_level }}):
+{{ title }}
+{{ summary }}
+Verified facts:
+{% for c in verified_claims | default([]) %}- {{ c }}
+{% endfor %}
+{% for pc in pricing_changes | default([]) %}- {{ pc.description }}
+{% endfor %}
+
+Score severity 1 (negligible) to 5 (severe) for products, customers, pricing and competitive_position,
+each with a one-sentence rationale grounded in the facts above. List which of OUR products and segments are
+affected, give a one-to-two sentence implication for each role (executive, product, sales, marketing, pricing),
+and 2-4 concrete recommended actions with owner_role and urgency (immediate, this_week, this_quarter).

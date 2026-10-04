@@ -1,0 +1,159 @@
+name: marketradar
+
+x-backend-env: &backend-env
+  ENV: ${ENV:-dev}
+  LOG_JSON: ${LOG_JSON:-true}
+  DATABASE_URL: postgresql+asyncpg://marketradar_app:marketradar_app@postgres:5432/marketradar
+  MIGRATION_DATABASE_URL: postgresql+asyncpg://marketradar:marketradar@postgres:5432/marketradar
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me-0123456789}
+  SESSION_SECRET: ${SESSION_SECRET:-dev-only-session-secret}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+  CORS_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
+  LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+  OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+  LLM_MODEL_CLASSIFY: ${LLM_MODEL_CLASSIFY:-llama3.2:latest}
+  LLM_MODEL_REASON: ${LLM_MODEL_REASON:-llama3.2:latest}
+  EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+  SEARXNG_URL: http://searxng:8080
+  S3_ENDPOINT: objectstore:8333
+  S3_ACCESS_KEY: marketradar
+  S3_SECRET_KEY: marketradar-secret
+  SMTP_HOST: mailpit
+  SMTP_PORT: "1025"
+  ALLOW_PRIVATE_SOURCES: ${ALLOW_PRIVATE_SOURCES:-true}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  OIDC_ENABLED: ${OIDC_ENABLED:-false}
+  OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+  OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+  OIDC_DISCOVERY_URL: ${OIDC_DISCOVERY_URL:-}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: marketradar
+      POSTGRES_PASSWORD: marketradar
+      POSTGRES_DB: marketradar
+    ports: ["${POSTGRES_PORT:-5433}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketradar -d marketradar"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  # S3-compatible object storage for raw snapshot blobs (any S3 works; set S3_ENDPOINT/keys).
+  objectstore:
+    image: chrislusf/seaweedfs:latest
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=512 -volume.max=20
+    ports: ["8333:8333"]
+    volumes:
+      - objectdata:/data
+      - ./deploy/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  searxng:
+    image: searxng/searxng:latest
+    ports: ["8888:8080"]
+    environment:
+      SEARXNG_BASE_URL: http://localhost:8888/
+    volumes:
+      - ./deploy/searxng/settings.yml:/etc/searxng/settings.yml:ro
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["8025:8025", "1025:1025"]
+
+  # Local fixture competitor websites for the end-to-end demo (see scripts/demo_mutate.py)
+  demo-sites:
+    image: nginx:alpine
+    ports: ["8090:8090"]
+    volumes:
+      - ./deploy/demo-sites/public:/usr/share/nginx/html:ro
+      - ./deploy/demo-sites/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      default:
+        # Same URLs work from the host (*.localtest.me -> 127.0.0.1) and from inside the stack.
+        aliases: [acme.localtest.me, globex.localtest.me, initech.localtest.me, newswire.localtest.me, simwire.localtest.me]
+
+  migrate:
+    build: { context: ./backend, target: api }
+    environment: *backend-env
+    command: ["python", "-m", "app.cli", "migrate"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    build: { context: ./backend, target: api }
+    environment: *backend-env
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      retries: 10
+
+  worker:
+    build: { context: ./backend, target: worker }
+    environment: *backend-env
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--pool=threads", "--concurrency=6", "-Q", "pipeline,briefs,default", "--loglevel=INFO"]
+    ports: ["9100:9100"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  beat:
+    build: { context: ./backend, target: api }
+    environment: *backend-env
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  frontend:
+    build: { context: ./frontend }
+    ports: ["8080:80"]
+    depends_on: [api]
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: [observability]
+    volumes: [./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: [observability]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: [ollama]
+    ports: ["11434:11434"]
+    volumes: [ollama:/root/.ollama]
+
+volumes:
+  pgdata:
+  objectdata:
+  ollama:

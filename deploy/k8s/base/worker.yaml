@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: worker } }
+  template:
+    metadata:
+      labels: { app: worker }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      terminationGracePeriodSeconds: 300  # let in-flight agent runs finish (acks_late re-queues otherwise)
+      containers:
+        - name: worker
+          image: marketradar-worker
+          ports: [{ containerPort: 9100, name: metrics }]
+          envFrom:
+            - configMapRef: { name: marketradar-config }
+            - secretRef: { name: marketradar-secrets }
+          livenessProbe:
+            exec: { command: ["sh", "-c", "celery -A app.workers.celery_app inspect ping -d celery@$HOSTNAME --timeout 10"] }
+            periodSeconds: 60
+            timeoutSeconds: 20
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { memory: 3Gi }  # headless Chromium
+          volumeMounts: [{ name: dshm, mountPath: /dev/shm }]
+      volumes:
+        - name: dshm
+          emptyDir: { medium: Memory, sizeLimit: 512Mi }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: worker
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: worker }
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 65 } }

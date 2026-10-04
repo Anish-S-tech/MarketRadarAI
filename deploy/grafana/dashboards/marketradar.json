@@ -1,0 +1,54 @@
+{
+  "title": "MarketRadarAI — agents & monitoring",
+  "uid": "marketradar",
+  "schemaVersion": 39,
+  "time": { "from": "now-24h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "stat", "title": "Events created (24h)", "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(mr_events_total[24h]))" }]
+    },
+    {
+      "type": "stat", "title": "Alerts sent (24h)", "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(mr_alerts_total{status=\"sent\"}[24h]))" }]
+    },
+    {
+      "type": "stat", "title": "Fetch errors (1h)", "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(mr_fetch_errors_total[1h]))" }]
+    },
+    {
+      "type": "stat", "title": "LLM fallbacks to heuristics (1h)", "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(increase(mr_llm_failures_total[1h]))" }]
+    },
+    {
+      "type": "timeseries", "title": "Pipeline outcomes", "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (outcome) (rate(mr_pipeline_outcomes_total[15m]))", "legendFormat": "{{outcome}}" }]
+    },
+    {
+      "type": "timeseries", "title": "Agent node latency p95 (s)", "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, node) (rate(mr_agent_node_seconds_bucket[15m])))", "legendFormat": "{{node}}" }]
+    },
+    {
+      "type": "timeseries", "title": "LLM latency p95 by task (s)", "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, task) (rate(mr_llm_seconds_bucket[15m])))", "legendFormat": "{{task}}" }]
+    },
+    {
+      "type": "timeseries", "title": "LLM tokens / min", "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (kind) (rate(mr_llm_tokens_total[5m])) * 60", "legendFormat": "{{kind}}" }]
+    },
+    {
+      "type": "timeseries", "title": "Fetch latency p95 by source type (s)", "gridPos": { "x": 0, "y": 20, "w": 24, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, source_type) (rate(mr_fetch_seconds_bucket[15m])))", "legendFormat": "{{source_type}}" }]
+    }
+  ]
+}

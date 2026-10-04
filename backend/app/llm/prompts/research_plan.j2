@@ -1,0 +1,12 @@
+A change was detected for competitor {{ competitor }}.
+
+Title: {{ title }}
+Category: {{ category }}
+Summary: {{ summary }}
+Key facts:
+{% for f in key_facts | default([]) %}- {{ f }}
+{% endfor %}
+
+1. claims: break this into at most {{ max_claims | default(3) }} atomic, independently checkable factual claims (most important first).
+2. queries: write 2-4 concise web search queries (include the competitor name) that would find independent
+   coverage (press releases, news, analyst posts, docs) confirming or refuting the claims.

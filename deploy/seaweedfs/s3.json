@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "marketradar",
+      "credentials": [{ "accessKey": "marketradar", "secretKey": "marketradar-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

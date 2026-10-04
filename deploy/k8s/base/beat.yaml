@@ -1,0 +1,27 @@
+# Exactly one scheduler. It only enqueues "dispatch due sources/briefs" ticks; the actual schedule lives in
+# Postgres (sources.next_check_at), so beat is stateless and safe to reschedule.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beat
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app: beat } }
+  template:
+    metadata:
+      labels: { app: beat }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      containers:
+        - name: beat
+          image: marketradar-api
+          command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+          envFrom:
+            - configMapRef: { name: marketradar-config }
+            - secretRef: { name: marketradar-secrets }
+          resources:
+            requests: { cpu: 50m, memory: 192Mi }
+            limits: { memory: 384Mi }
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: {} }]

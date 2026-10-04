@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: marketradar-migrate
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      containers:
+        - name: migrate
+          image: marketradar-api
+          command: ["python", "-m", "app.cli", "migrate"]
+          envFrom:
+            - configMapRef: { name: marketradar-config }
+            - secretRef: { name: marketradar-secrets }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }

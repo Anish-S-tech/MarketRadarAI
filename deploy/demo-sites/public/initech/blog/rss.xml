@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Initech Cloud Blog</title>
+<link>http://initech.localtest.me:8090/</link><description>News from Initech Cloud</description>
+<item><title>Initech launches Initech Copilot, an AI analyst for embedded dashboards</title>
+<link>http://initech.localtest.me:8090/blog/post-8b5859f79c.html</link><guid>post-8b5859f79c</guid>
+<pubDate>Tue, 29 Sep 2026 18:44:43 +0000</pubDate><description>Initech Cloud launched Initech Copilot, letting end users ask questions of embedded dashboards in natural language. Copilot is available as an add-on for $15 per user per month.</description></item><item><title>Initech Cloud achieves SOC 2 Type II</title>
+<link>http://initech.localtest.me:8090/blog/post-4783499e15.html</link><guid>post-4783499e15</guid>
+<pubDate>Sun, 30 Aug 2026 18:43:43 +0000</pubDate><description>Initech Cloud completed its SOC 2 Type II audit with zero exceptions.</description></item>
+</channel></rss>

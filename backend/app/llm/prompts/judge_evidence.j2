@@ -1,0 +1,12 @@
+Judge whether a piece of evidence supports, contradicts, or is irrelevant to each claim about {{ competitor }}.
+"supports" only if the evidence clearly states the same fact. "contradicts" only if it states a conflicting fact
+(e.g. a different price for the same plan). Otherwise "irrelevant".
+
+CLAIMS:
+{% for c in claims %}[{{ loop.index0 }}] {{ c }}
+{% endfor %}
+
+EVIDENCE ({{ evidence_title | default('untitled') }}):
+{{ evidence_text | truncate(4000) }}
+
+Return one judgment per claim with claim_index, stance and a short rationale.

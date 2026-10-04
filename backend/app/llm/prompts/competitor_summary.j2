@@ -1,0 +1,7 @@
+Update the running profile summary of competitor {{ competitor }} in 3-4 sentences, integrating recent activity.
+
+Current description: {{ description | default('') }}
+Current summary: {{ current_summary | default('') }}
+Recent events:
+{% for e in recent_events | default([]) %}- {{ e.title }} ({{ e.category }})
+{% endfor %}

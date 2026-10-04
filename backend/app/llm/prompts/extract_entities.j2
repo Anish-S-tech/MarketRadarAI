@@ -1,0 +1,8 @@
+From this text about competitor {{ competitor }}, extract:
+- products: products or product lines of {{ competitor }} that are named (with short description, category and features).
+- relationships: other organisations {{ competitor }} is related to, with rel_type one of partner, investor,
+  acquirer (they acquired {{ competitor }}), acquired ({{ competitor }} acquired them), integration, customer, supplier, competitor.
+Only include entities explicitly named in the text. Return empty lists if none.
+
+TEXT:
+{{ text | truncate(6000) }}

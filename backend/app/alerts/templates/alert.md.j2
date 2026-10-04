@@ -1,0 +1,51 @@
+{% if simulated | default(false) %}
+> **Simulated demo scenario.** This event comes from a simulated feed and is not real news.
+
+{% endif %}
+**{{ priority | upper }}** · {{ competitor }} · {{ category }} · confidence: {{ confidence_level or 'n/a' }}{% if confidence_score is not none %} ({{ '%.0f' | format(confidence_score * 100) }}%){% endif %}
+
+{{ summary }}
+
+{% if key_facts %}
+**What changed**
+{% for f in key_facts[:6] %}
+- {{ f }}
+{% endfor %}
+{% endif %}
+{% if role in ('pricing', 'executive', 'sales') and pricing_changes %}
+
+**Price moves**
+
+| Plan | Before | After | Δ |
+|---|---|---|---|
+{% for pc in pricing_changes if pc.type == 'price_changed' %}
+| {{ pc.plan }} | {{ pc.old_price if pc.old_price is not none else 'custom' }} | {{ pc.new_price if pc.new_price is not none else 'custom' }} | {{ ('%+.1f%%' | format(pc.pct_change)) if pc.pct_change is not none else '' }} |
+{% endfor %}
+{% endif %}
+{% if implication %}
+
+**Why it matters to {{ role_label }}**
+{{ implication }}
+{% endif %}
+{% if actions %}
+
+**Recommended actions**
+{% for a in actions %}
+- {{ a.action }} _({{ a.owner_role }}, {{ a.urgency | replace('_', ' ') }})_
+{% endfor %}
+{% endif %}
+{% if role == 'sales' %}
+
+**Talking points**
+- Acknowledge {{ competitor }}'s move and re-anchor on our differentiators{% if differentiators %}: {{ differentiators[:3] | join(', ') }}{% endif %}.
+- Ask what outcome the buyer is optimising for before comparing list prices.
+{% endif %}
+{% if evidence %}
+
+**Evidence**
+{% for e in evidence %}
+- [{{ e.title or e.domain }}]({{ e.url }}) — {{ e.domain }} (tier {{ e.tier }}{% if e.primary %}, primary{% endif %})
+{% endfor %}
+{% endif %}
+
+[Open in MarketRadar]({{ link }})

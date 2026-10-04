@@ -1,0 +1,36 @@
+# Non-secret configuration. Postgres (with pgvector), Redis, S3 storage, SMTP and Ollama are expected to be
+# provided externally (managed services or their own charts); point the URLs below at them.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marketradar-config
+data:
+  ENV: prod
+  LOG_JSON: "true"
+  REDIS_URL: redis://redis:6379/0
+  LLM_PROVIDER: ollama
+  OLLAMA_URL: http://ollama:11434
+  LLM_MODEL_CLASSIFY: llama3.2:latest
+  LLM_MODEL_REASON: qwen2.5:7b-instruct
+  EMBED_MODEL: nomic-embed-text
+  SEARXNG_URL: http://searxng:8080
+  S3_ENDPOINT: s3.example.com
+  S3_SECURE: "true"
+  S3_BUCKET: marketradar-snapshots
+  SMTP_HOST: smtp.example.com
+  SMTP_PORT: "587"
+  SMTP_STARTTLS: "true"
+  SMTP_FROM: "MarketRadar <alerts@example.com>"
+  FRONTEND_URL: https://marketradar.example.com
+  CORS_ORIGINS: '["https://marketradar.example.com"]'
+  ALLOW_SIGNUP: "false"
+  ALLOW_PRIVATE_SOURCES: "false"
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""
+---
+# Example only — create the real secret out-of-band (sealed-secrets / external-secrets / kubectl):
+#   kubectl -n marketradar create secret generic marketradar-secrets \
+#     --from-literal=DATABASE_URL=postgresql+asyncpg://marketradar_app:...@db:5432/marketradar \
+#     --from-literal=MIGRATION_DATABASE_URL=postgresql+asyncpg://marketradar:...@db:5432/marketradar \
+#     --from-literal=JWT_SECRET=$(openssl rand -hex 32) --from-literal=SESSION_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=S3_ACCESS_KEY=... --from-literal=S3_SECRET_KEY=... \
+#     --from-literal=SMTP_USERNAME=... --from-literal=SMTP_PASSWORD=...
